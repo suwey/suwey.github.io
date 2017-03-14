@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="这篇文章主要是Docker入门实战这本电子书的学习记录，对其中一些原理相关代码的记录和实践就不再赘述一些更为基本的概念，这本书是由DockerOne编译的，其条理和内容都很不错非常值得一读。继续阅读之前需要先了解下容器是什么、和VM的区别是什么、Docker解决了什么问题以及镜像、数据卷、LXC、Cgroups、Union文件系统等基本概念，然后安装好docker和gcc就可以愉快的进入下文了，如果对Docker的源码有兴趣可以看看这个系列的文章列表。">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="suwey">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="docker入门实战笔记"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="My Curious"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+    <meta name="twitter:card" content="summary" />
+    
+
+    <!-- Title -->
+    
+    <title>docker入门实战笔记 - My Curious</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+
+    <!-- Google Analytics -->
+    
+
+
+</head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about.html">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact.html">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Hamburger Icon-->
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-leaf" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2017/03/15/docker-rudiments-and-practice-part1/">
+                docker入门实战笔记
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2017-03-15</span>
+            
+            <a href="#disqus_thread" class="comments">Kommentare</a>
+            
+                <span class="category">
+                    <a href="/categories/docker/">docker</a>
+                </span>
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        <p>这篇文章主要是<a href="http://yuedu.baidu.com/ebook/d817967416fc700abb68fca1?fr=aladdin&amp;key=docker%E5%85%A5%E9%97%A8%E5%AE%9E%E6%88%98" target="_blank" rel="external">Docker入门实战</a>这本电子书的学习记录，对其中一些原理相关代码的记录和实践就不再赘述一些更为基本的概念，这本书是由<a href="http://www.dockone.io" target="_blank" rel="external">DockerOne</a>编译的，其条理和内容都很不错非常值得一读。继续阅读之前需要先了解下容器是什么、和VM的区别是什么、Docker解决了什么问题以及镜像、数据卷、LXC、Cgroups、Union文件系统等基本概念，然后安装好docker和gcc就可以愉快的进入下文了，如果对Docker的源码有兴趣可以看看这个系列的文章<a href="http://www.infoq.com/cn/search.action?queryString=Docker%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90&amp;page=1&amp;searchOrder=&amp;sst=uZnwt8z7LUYMOcuH" target="_blank" rel="external">列表</a>。</p>
+<a id="more"></a>
+<h2 id="LXC-核心：Linux-Namespaces"><a href="#LXC-核心：Linux-Namespaces" class="headerlink" title="LXC 核心：Linux Namespaces"></a>LXC 核心：Linux Namespaces</h2><p>Docker是利用LXC实现类似VM的功能的（之后换成了libcontainer，具体区别和对libcontainer的分析请看<a href="http://www.infoq.com/cn/articles/docker-container-management-libcontainer-depth-analysis" target="_blank" rel="external">这里</a>），而LXC依赖Linux内核的3种隔离机制：</p>
+<ol>
+<li>Chroot</li>
+<li>Cgroups</li>
+<li>Namespaces</li>
+</ol>
+<p>本文主要关注Namespaces，在3.12 kernel中Linux支持以下6种Namespace：</p>
+<ol>
+<li>UTS: hostname</li>
+<li>IPC: 进程间通信</li>
+<li>PID: Chroot 进程树</li>
+<li>NS: 挂载点</li>
+<li>NET: 网络访问，包括接口</li>
+<li>USER: user-id映射</li>
+</ol>
+<h2 id="UTS-Namespace"><a href="#UTS-Namespace" class="headerlink" title="UTS Namespace"></a>UTS Namespace</h2><p>关于上述内容在<a href="http://www.infoq.com/cn/articles/docker-core-technology-preview" target="_blank" rel="external">这里</a>有更详细的解释，下面试着在容器中启动<code>/bin/bash</code>，编写代码<a href="/attachments/docker/practice/main-0-template.c">main-0-template.c</a>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Last Update:2016-02-25 09:15:39</span></span><br><span class="line"><span class="comment">/**</span><br><span class="line"> * @file main-0-template.c</span><br><span class="line"> * @brief docker lxc test</span><br><span class="line"> * @author suwey_1990@126.com</span><br><span class="line"> * @version 0.0.1</span><br><span class="line"> * @date 2016-02-25</span><br><span class="line"> */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> _GNU_SOURCE</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sched.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;signal.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> STACK_SIZE (1024 * 1024)</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">char</span> child_stack[STACK_SIZE];</span><br><span class="line"><span class="keyword">char</span>* <span class="keyword">const</span> child_args[] = &#123;</span><br><span class="line">    <span class="string">"/bin/bash"</span>,</span><br><span class="line">    <span class="literal">NULL</span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">child_main</span><span class="params">(<span class="keyword">void</span>* arg)</span> </span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">" - World !\n"</span>);</span><br><span class="line">    execv(child_args[<span class="number">0</span>], child_args);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Ooops\n"</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">" - Hello ?\n"</span>);</span><br><span class="line">    <span class="keyword">int</span> child_pid = clone(child_main, child_stack + STACK_SIZE, SIGCHLD, <span class="literal">NULL</span>);</span><br><span class="line">    waitpid(child_pid, <span class="literal">NULL</span>, <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>编译执行<code>gcc -Wall main-0-template.c -o ns &amp;&amp; sudo ./ns</code>可以看到输出，从结果看就是很普通的helloworld只不过是在子进程中输出的，然后试着修改下主机名，修改代码为<a href="/attachments/docker/practice/main-1-uts.c">main-1-uts.c</a>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//require root</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">child_main</span><span class="params">(<span class="keyword">void</span>* arg)</span> </span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">" - World !\n"</span>);</span><br><span class="line">    sethostname(<span class="string">"In Namespace"</span>, <span class="number">12</span>);</span><br><span class="line">    execv(child_args[<span class="number">0</span>], child_args);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Ooops\n"</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">" - Hello ?\n"</span>);</span><br><span class="line">    <span class="keyword">int</span> child_pid = clone(child_main, child_stack + STACK_SIZE, CLONE_NEWUTS | SIGCHLD, <span class="literal">NULL</span>);</span><br><span class="line">    waitpid(child_pid, <span class="literal">NULL</span>, <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>主要不同是使用了<code>CLONE_NEWUTS</code>标记，运行后会发现hostname已经被修改了如果没有调用<code>exit</code>命令则会一直处在容器中，可以看到使用Namespace技术非常简单，只需要调用<code>clone</code>函数并设置好标记，下面继续学习下IPC是如何隔离的。</p>
+<h2 id="IPC-Namespace"><a href="#IPC-Namespace" class="headerlink" title="IPC Namespace"></a>IPC Namespace</h2><p>很自然的可以想到肯定有一个别的标记对应此类Namespace，这个标记就是<code>CLONE_NEWIPC</code>，但是这次有点不同的是这里有父子进程通信的问题需要解决，clone和它的parent会分享内存空间，因此有以下几种方式可以使用：</p>
+<ul>
+<li>信号</li>
+<li>poll内存</li>
+<li>套接字</li>
+<li>文件和文件描述符</li>
+</ul>
+<p>这几种里面首先信号可以直接排除，因为在容器内的进程上下文已经和父进程不一样了，至于poll内存的方式因为效率问题暂不考虑，socket套接字这种方法和文件的方式都可以但是这里提供一种由<code>Lennart Poettering</code>在<code>Systemd&#39;s &quot;nspawn&quot;</code>中使用过的技术，通过监视一对<code>pipe</code>上的事件来完成通信。首先需要初始化一对pipe：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="keyword">int</span> checkpoint[<span class="number">2</span>];</span><br><span class="line">pipe(checkpoint);</span><br></pre></td></tr></table></figure>
+<p>这里的思想是在parent中触发一个<code>close</code>事件，并且在child的读取端等待<code>EOF</code>被接收，接收后所有写fd的文件必须被关闭，所以在child等待前就要关闭fd的副本：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">close(checkpoint[<span class="number">1</span>]);</span><br></pre></td></tr></table></figure>
+<p>基于上文模板需要修改部分代码<a href="/attachments/docker/practice/main-2-ipc.c">main-2-ipc.c</a>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">child_main</span><span class="params">(<span class="keyword">void</span>* arg)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">char</span> c;</span><br><span class="line">    close(checkpoint[<span class="number">1</span>]);</span><br><span class="line">    read(checkpoint[<span class="number">0</span>], &amp;c, <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">" - World !\n"</span>);</span><br><span class="line">    sethostname(<span class="string">"In Namespace"</span>, <span class="number">12</span>);</span><br><span class="line">    execv(child_args[<span class="number">0</span>], child_args);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Ooops\n"</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    pipe(checkpoint);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">" - Hello ?\n"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> child_pid = clone(child_main, child_stack + STACK_SIZE, CLONE_NEWIPC | CLONE_NEWUTS | SIGCHLD, <span class="literal">NULL</span>);</span><br><span class="line">    sleep(<span class="number">4</span>);</span><br><span class="line">    close(checkpoint[<span class="number">1</span>]);</span><br><span class="line"></span><br><span class="line">    waitpid(child_pid, <span class="literal">NULL</span>, <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>执行此程序可以观察到在父进程完成sleep后容器中的子进程才获得消息然后输出内容，这里还保留着UTS的标志只是为了顺便说明Namespace是可以组合使用的，本质上也是通过各种组合实现不同程度的隔离。</p>
+<h2 id="PID-Namespace"><a href="#PID-Namespace" class="headerlink" title="PID Namespace"></a>PID Namespace</h2><p>很自然的可以猜到这次的标记是<code>CLONE_NEWPID</code>，激活此Namespace后将会重置PID计数，子进程<code>getpid()</code>的返回结果将会是1，使用<a href="/attachments/docker/practice/main-3-pid.c">main-3-pid.c</a>进行测试：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">child_main</span><span class="params">(<span class="keyword">void</span>* arg)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">char</span> c;</span><br><span class="line">    close(checkpoint[<span class="number">1</span>]);</span><br><span class="line">    read(checkpoint[<span class="number">0</span>], &amp;c, <span class="number">1</span>);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">" - [%5d] World !\n"</span>, getpid());</span><br><span class="line">    sethostname(<span class="string">"In Namespace"</span>, <span class="number">12</span>);</span><br><span class="line">    execv(child_args[<span class="number">0</span>], child_args);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Ooops\n"</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    pipe(checkpoint);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">" - [%5d] Hello ?\n"</span>, getpid());</span><br><span class="line">    <span class="keyword">int</span> child_pid = clone(child_main, child_stack + STACK_SIZE, CLONE_NEWPID | CLONE_NEWIPC | CLONE_NEWUTS | SIGCHLD, <span class="literal">NULL</span>);</span><br><span class="line">    close(checkpoint[<span class="number">1</span>]);</span><br><span class="line">    waitpid(child_pid, <span class="literal">NULL</span>, <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行后会发现子进程的pid为1，在子进程中即使Kill父进程的pid也只会提示<code>bash: kill: (1674) - No such process</code>，这一点和<code>chroot</code>很像有趣的是此时如果在父进程中使用<code>top</code>将可以看到子进程和它未映射的pid，但是如果在子进程中运行则会发现和父进程是一样的内容，这是因为这类工具往往直接从<code>/proc</code>中获取信息，后面将会讨论如何让子进程也看起来比较正常。</p>
+<h2 id="NS-Namespace"><a href="#NS-Namespace" class="headerlink" title="NS Namespace"></a>NS Namespace</h2><p>直接开始吧，使用<a href="/attachments/docker/practice/main-4-ns.c">main-4-ns.c</a>进行测试：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">child_main</span><span class="params">(<span class="keyword">void</span>* arg)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">char</span> c;</span><br><span class="line">    close(checkpoint[<span class="number">1</span>]);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">" - [%5d] World !\n"</span>, getpid());</span><br><span class="line">    sethostname(<span class="string">"In Namespace"</span>, <span class="number">12</span>);</span><br><span class="line">    mount(<span class="string">"proc"</span>, <span class="string">"/proc"</span>, <span class="string">"proc"</span>, <span class="number">0</span>, <span class="literal">NULL</span>);</span><br><span class="line">    read(checkpoint[<span class="number">0</span>], &amp;c, <span class="number">1</span>);</span><br><span class="line">    execv(child_args[<span class="number">0</span>], child_args);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Ooops\n"</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    pipe(checkpoint);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">" - [%5d] Hello ?\n"</span>, getpid());</span><br><span class="line">    <span class="keyword">int</span> child_pid = clone(child_main, child_stack + STACK_SIZE, CLONE_NEWNS | CLONE_NEWPID | CLONE_NEWIPC | CLONE_NEWUTS | SIGCHLD, <span class="literal">NULL</span>);</span><br><span class="line">    close(checkpoint[<span class="number">1</span>]);</span><br><span class="line">    waitpid(child_pid, <span class="literal">NULL</span>, <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这一次将会解决子进程查看命令在上一节中的问题，如果重新挂载基本的文件系统可以在子进程中只能看到自己的设备、文件等等，有兴趣可以自行尝试。不过这里有个问题是当退出子进程后会发现再也使用不了sudo了，提示<code>sudo: no tty present and no askpass program specified</code>，如果使用ps命令则会有错误<code>Error, do this: mount -t proc proc /proc</code>，但是mount命令又需要用sudo来执行，所以这时候如果想使用和<code>/proc</code>相关的命令只能强制重启机器，如果不是虚拟机的话得亲自去机房关机哦。其实这个错误信息已经告诉了此问题的原因，所以解决办法就是在主进程的函数中再调用一次mount，完整文件已经修改可以放心运行。</p>
+<h2 id="NET-Namespace"><a href="#NET-Namespace" class="headerlink" title="NET Namespace"></a>NET Namespace</h2><p>这次先不急着上代码，先走一遍基本原理，先查看下本机网络情况：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">sudo ip link list</span><br><span class="line">[sudo] password for suwey:</span><br><span class="line">1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">2: eno16777736: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc fq_codel state UP mode DEFAULT group default qlen 1000</span><br><span class="line">    link/ether 00:0c:29:ee:fe:5d brd ff:ff:ff:ff:ff:ff</span><br></pre></td></tr></table></figure>
+<p>可以看到本机的lo口是启动的，然后直接使用命令创建Net Namespace看看里面的情况：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sudo ip netns add demo</span><br><span class="line">sudo ip netns exec demo ip link list</span><br><span class="line">1: lo: &lt;LOOPBACK&gt; mtu 65536 qdisc noop state DOWN mode DEFAULT group default qlen 1</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br></pre></td></tr></table></figure>
+<p>可以看到其内部的lo口状态是DOWN，和外层的lo互不干扰与之前IPC有同样的隔离级别，如果要在外面和里面的网络进行通信的话可以创建一个P2P管道，使用内核提供的<code>veth</code>接口可以完成这件事情，如果想其可以监听外部主机的端口可以考虑使用<code>DNAT</code>技术，现在可以使用代码<a href="/attachments/docker/practice/main-5-net.c">main-5-net.c</a>测试了：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">child_main</span><span class="params">(<span class="keyword">void</span>* arg)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">char</span> c;</span><br><span class="line">    close(checkpoint[<span class="number">1</span>]);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">" - [%5d] World !\n"</span>, getpid());</span><br><span class="line">    sethostname(<span class="string">"In Namespace"</span>, <span class="number">12</span>);</span><br><span class="line">    mount(<span class="string">"proc"</span>, <span class="string">"/proc"</span>, <span class="string">"proc"</span>, <span class="number">0</span>, <span class="literal">NULL</span>);</span><br><span class="line">    read(checkpoint[<span class="number">0</span>], &amp;c, <span class="number">1</span>);</span><br><span class="line">    system(<span class="string">"ip link set lo up"</span>);</span><br><span class="line">    system(<span class="string">"ip link set veth1 up"</span>);</span><br><span class="line">    system(<span class="string">"ip addr add 192.168.55.222/24 dev veth1"</span>);</span><br><span class="line">    execv(child_args[<span class="number">0</span>], child_args);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Ooops\n"</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    pipe(checkpoint);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">" - [%5d] Hello ?\n"</span>, getpid());</span><br><span class="line">    <span class="keyword">int</span> child_pid = clone(child_main, child_stack + STACK_SIZE, CLONE_NEWNET | CLONE_NEWNS | CLONE_NEWPID | CLONE_NEWIPC | CLONE_NEWUTS | SIGCHLD, <span class="literal">NULL</span>);</span><br><span class="line">    <span class="keyword">char</span>* cmd;</span><br><span class="line">    asprintf(&amp;cmd, <span class="string">"ip link set veth1 netns %d"</span>, child_pid);</span><br><span class="line">    system(<span class="string">"ip link add veth0 type veth peer name veth1"</span>);</span><br><span class="line">    system(cmd);</span><br><span class="line">    system(<span class="string">"ip link set veth0 up"</span>);</span><br><span class="line">    system(<span class="string">"ip addr add 192.168.55.1/24 dev veth0"</span>);</span><br><span class="line">    <span class="built_in">free</span>(cmd);</span><br><span class="line">    close(checkpoint[<span class="number">1</span>]);</span><br><span class="line">    waitpid(child_pid, <span class="literal">NULL</span>, <span class="number">0</span>);</span><br><span class="line">    mount(<span class="string">"proc"</span>, <span class="string">"/proc"</span>, <span class="string">"proc"</span>, <span class="number">0</span>, <span class="literal">NULL</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后可以看看这时候内部的情况：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">[root@In Namespace my]# ip addr</span><br><span class="line">1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1</span><br><span class="line">    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">    inet 127.0.0.1/8 scope host lo</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">    inet6 ::1/128 scope host</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">3: veth1@if4: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UP group default qlen 1000</span><br><span class="line">    link/ether 3e:59:c2:bd:59:ad brd ff:ff:ff:ff:ff:ff link-netnsid 0</span><br><span class="line">    inet 192.168.55.222/24 scope global veth1</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">    inet6 fe80::3c59:c2ff:febd:59ad/64 scope link</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">[root@In Namespace my]# ping 192.168.55.1</span><br><span class="line">PING 192.168.55.1 (192.168.55.1) 56(84) bytes of data.</span><br><span class="line">64 bytes from 192.168.55.1: icmp_seq=1 ttl=64 time=0.080 ms</span><br><span class="line">64 bytes from 192.168.55.1: icmp_seq=2 ttl=64 time=0.074 ms</span><br><span class="line">64 bytes from 192.168.55.1: icmp_seq=3 ttl=64 time=0.120 ms</span><br><span class="line">^C</span><br><span class="line">--- 192.168.55.1 ping statistics ---</span><br><span class="line">3 packets transmitted, 3 received, 0% packet loss, time 2000ms</span><br><span class="line">rtt min/avg/max/mdev = 0.074/0.091/0.120/0.021 ms</span><br><span class="line">[root@In Namespace my]# route add default gw 192.168.55.1</span><br><span class="line">[root@In Namespace my]# ping 192.168.45.138</span><br><span class="line">PING 192.168.45.138 (192.168.45.138) 56(84) bytes of data.</span><br><span class="line">64 bytes from 192.168.45.138: icmp_seq=1 ttl=64 time=0.072 ms</span><br><span class="line">64 bytes from 192.168.45.138: icmp_seq=2 ttl=64 time=0.129 ms</span><br><span class="line">64 bytes from 192.168.45.138: icmp_seq=3 ttl=64 time=0.115 ms</span><br><span class="line">64 bytes from 192.168.45.138: icmp_seq=4 ttl=64 time=0.113 ms</span><br></pre></td></tr></table></figure>
+<p>可以看到添加了路由后是可以连通外部本机地址的，至此就演示完了对网络隔离的方法了，想进一步了解网络虚拟化的话可以查一下Linux kernel新支持的接口类型：macvlan、vlan、vxlans…。</p>
+<h2 id="USER-Namespace"><a href="#USER-Namespace" class="headerlink" title="USER Namespace"></a>USER Namespace</h2><p>这个Namespace在入门实战这个电子书中没有讲，但是像我这种有追求得读者怎么可以让这篇文章最后少了这么一个重要的内容，于是通过牛逼的搜索引擎终于还是补上了，主要是参考了<a href="https://lwn.net/Articles/532593" target="_blank" rel="external">这篇</a>。结合前面的内容显然这次的标记是<code>CLONE_NEWUSER</code>，与前面有一点不同的是如果仅使用此标记是不需要使用root权限的，先运行<a href="/attachments/docker/practice/demo-userns.c">demo-userns.c</a>简单看一下效果：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">child_main</span><span class="params">(<span class="keyword">void</span>* arg)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">cap_t</span> caps;</span><br><span class="line">      <span class="keyword">for</span>(;;) &#123;</span><br><span class="line">          <span class="built_in">printf</span>(<span class="string">"eUID = %ld, eGID = %ld\n"</span>, (<span class="keyword">long</span>)geteuid(), (<span class="keyword">long</span>)getegid());</span><br><span class="line">          caps = cap_get_proc();</span><br><span class="line">          <span class="built_in">printf</span>(<span class="string">"capabilities: %s\n"</span>, cap_to_text(caps, <span class="literal">NULL</span>));</span><br><span class="line">          <span class="keyword">if</span>(arg == <span class="literal">NULL</span>)</span><br><span class="line">              <span class="keyword">break</span>;</span><br><span class="line">          sleep(<span class="number">5</span>);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span> </span>&#123;</span><br><span class="line">      <span class="keyword">int</span> child_pid = clone(child_main, child_stack + STACK_SIZE, CLONE_NEWUSER | SIGCHLD, argv[<span class="number">1</span>]);</span><br><span class="line">      waitpid(child_pid, <span class="literal">NULL</span>, <span class="number">0</span>);</span><br><span class="line">      <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>注意编译前需要运行<code>sudo dnf install libcap-devel</code>，编译时需要指定<code>-lcap</code>，结果如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">eUID = 65534, eGID = 65534</span><br><span class="line">capabilities: = cap_chown,cap_dac_override,cap_dac_read_search,cap_fowner,cap_fsetid,cap_kill,cap_setgid,cap_setuid,cap_setpcap,cap_linux_immutable,cap_net_bind_service,cap_net_broadcast,cap_net_admin,cap_net_raw,cap_ipc_lock,cap_ipc_owner,cap_sys_module,cap_sys_rawio,cap_sys_chroot,cap_sys_ptrace,cap_sys_pacct,cap_sys_admin,cap_sys_boot,cap_sys_nice,cap_sys_resource,cap_sys_time,cap_sys_tty_config,cap_mknod,cap_lease,cap_audit_write,cap_audit_control,cap_setfcap,cap_mac_override,cap_mac_admin,cap_syslog,cap_wake_alarm,cap_block_suspend,37+ep</span><br></pre></td></tr></table></figure>
+<p>这里最后面显示的是子进程的权限，关于这一块的详情请搜索Linux内核中一种新的权限机制<code>Capabilities</code>（可以看<a href="http://www.cnblogs.com/iamfy/archive/2012/09/20/2694977.html" target="_blank" rel="external">这里</a>了解下），而上面的uid和gid则因为在没有对外部和内部的id进行映射时将分别返回<code>/proc/sys/kernel/overflowuid</code>和<code>/proc/sys/kernel/overflowgid</code>，要注意的一点是这里子进程拥有的权限仅仅针对的是内部对于外部无论调用者拥有何种权限子进程都没有任何权限。那么如何进行映射呢？通过<code>/proc/PID/uid_map</code>和<code>/proc/PID/gid_map</code>即可完成对应的映射，内容格式为<code>ID-inside-ns   ID-outside-ns   length</code>，<code>ID-inside-ns</code>和<code>length</code>一起决定Namespace内部映射到外部的id的范围而<code>ID-outside-ns</code>表示外部id范围的开始的值，但是这个值会如何解释在不同情况所有不同，主要取决于打开<code>/proc/PID/uid_map</code>（或<code>/proc/PID/gid_map</code>）的进程：</p>
+<ol>
+<li>如果其与目标进程在同一个Namespace中，<code>ID-outside-ns</code>会被解释为父USER Namespace中的uid（或gid）</li>
+<li>如果其与目标进程不在同一个Namespace中，<code>ID-outside-ns</code>会被解释为打开<code>/proc/PID/uid_map</code>（或<code>/proc/PID/gid_map</code>）进程所在USER Namespace中的uid（或gid）</li>
+</ol>
+<p>下面先用命令来理解下这两条规定，执行刚才的程序，随便通过参数传入一个字符串，这时候命令会不停的像刚才一样打印子进程的uid和gid，然后在另一个终端窗口执行<code>ps -C ns -o &#39;pid uid comm&#39;</code>可以看到：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">PID   UID COMMAND</span><br><span class="line">29104  1000 ns        #父id</span><br><span class="line">29105  1000 ns        #子id</span><br></pre></td></tr></table></figure>
+<p>然后修改一下map文件<code>echo &#39;0 1000 1&#39; &gt; /proc/29105/uid_map</code>，这时候在原来的终端窗口可以看到：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">eUID = 0, eGID = 65534</span><br><span class="line">capabilities: = cap_chown,cap...</span><br></pre></td></tr></table></figure>
+<p>通过修改映射将父进程中为1000的uid关联为0，所以子进程获得的uid之后就也变成了0。关于修改映射文件也是有一定规则的：</p>
+<ol>
+<li>写入的进程在要映射的PID所在的USER Namespace中必须拥有<code>CAP_SETUID</code>（对于gid来说是<code>CAP_SETGID</code>）权限</li>
+<li>不管<code>Capabilities</code>设置如何，写入的进程必须在要在映射PID所在的USER Namespace中或者其父USER Namespace中</li>
+<li>至少满足下面的一条<ul>
+<li>映射文件中有且仅有一条数据将写入进程在父USER Namespace中的uid（或gid）映射为子USER Namespace的uid（或gid）。这个规则允许子进程自己修改映射。</li>
+<li>在父USER Namespace中拥有<code>CAP_SETUID</code>（对于gid来说是<code>CAP_SETGID</code>）权限的进程可以定义任何在父USER Namespace中进程的映射</li>
+</ul>
+</li>
+</ol>
+<p>继续完成之前的代码<a href="/attachments/docker/practice/main-6-user.c">main-6-user.c</a>然后测试下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">set_id_map</span><span class="params">(<span class="keyword">long</span> pid, <span class="keyword">long</span> inside, <span class="keyword">long</span> outside, <span class="keyword">long</span> length, <span class="keyword">char</span>* <span class="built_in">map</span>)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">char</span> path[<span class="number">256</span>];</span><br><span class="line">    <span class="built_in">sprintf</span>(path, <span class="string">"/proc/%ld/%s"</span>, pid, <span class="built_in">map</span>);</span><br><span class="line">    FILE* file = fopen(path, <span class="string">"w"</span>);</span><br><span class="line">    <span class="built_in">fprintf</span>(file, <span class="string">"%ld %ld %ld"</span>, inside, outside, length);</span><br><span class="line">    fclose(file);</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">child_main</span><span class="params">(<span class="keyword">void</span>* arg)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">char</span> c;</span><br><span class="line">    close(checkpoint[<span class="number">1</span>]);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">" - [%5d] World !\n"</span>, getpid());</span><br><span class="line">    sethostname(<span class="string">"In Namespace"</span>, <span class="number">12</span>);</span><br><span class="line">    mount(<span class="string">"proc"</span>, <span class="string">"/proc"</span>, <span class="string">"proc"</span>, <span class="number">0</span>, <span class="literal">NULL</span>);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"eUID = %ld, eGID = %ld\n"</span>, (<span class="keyword">long</span>)geteuid(), (<span class="keyword">long</span>)getegid());</span><br><span class="line">    read(checkpoint[<span class="number">0</span>], &amp;c, <span class="number">1</span>);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"eUID = %ld, eGID = %ld\n"</span>, (<span class="keyword">long</span>)geteuid(), (<span class="keyword">long</span>)getegid());</span><br><span class="line">    system(<span class="string">"ip link set lo up"</span>);</span><br><span class="line">    system(<span class="string">"ip link set veth1 up"</span>);</span><br><span class="line">    system(<span class="string">"ip addr add 192.168.55.222/24 dev veth1"</span>);</span><br><span class="line">    execv(child_args[<span class="number">0</span>], child_args);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"Ooops\n"</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    pipe(checkpoint);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">" - [%5d] Hello ?\n"</span>, getpid());</span><br><span class="line">    <span class="keyword">int</span> child_pid = clone(child_main, child_stack + STACK_SIZE, CLONE_NEWUSER | CLONE_NEWNET | CLONE_NEWNS | CLONE_NEWPID | CLONE_NEWIPC | CLONE_NEWUTS | SIGCHLD, <span class="literal">NULL</span>);</span><br><span class="line">    <span class="keyword">char</span>* cmd;</span><br><span class="line">    asprintf(&amp;cmd, <span class="string">"ip link set veth1 netns %d"</span>, child_pid);</span><br><span class="line">    system(<span class="string">"ip link add veth0 type veth peer name veth1"</span>);</span><br><span class="line">    system(cmd);</span><br><span class="line">    system(<span class="string">"ip link set veth0 up"</span>);</span><br><span class="line">    system(<span class="string">"ip addr add 192.168.55.1/24 dev veth0"</span>);</span><br><span class="line">    <span class="built_in">free</span>(cmd);</span><br><span class="line">    set_id_map((<span class="keyword">long</span>)child_pid, <span class="number">0</span>, (<span class="keyword">long</span>)geteuid(), <span class="number">1</span>, <span class="string">"uid_map"</span>);</span><br><span class="line">    set_id_map((<span class="keyword">long</span>)child_pid, <span class="number">0</span>, (<span class="keyword">long</span>)getegid(), <span class="number">1</span>, <span class="string">"gid_map"</span>);</span><br><span class="line">    close(checkpoint[<span class="number">1</span>]);</span><br><span class="line">    waitpid(child_pid, <span class="literal">NULL</span>, <span class="number">0</span>);</span><br><span class="line">    mount(<span class="string">"proc"</span>, <span class="string">"/proc"</span>, <span class="string">"proc"</span>, <span class="number">0</span>, <span class="literal">NULL</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过在父进程中修改映射可以看到子进程前后两次获得的uid和gid均不同，其实根据刚才讲到的规则子进程也可以将自己的映射的修改掉，只需要对此代码稍作改动即可有兴趣可以自行测试，需要注意的一点是这里因为加上了其他标记所以必须使用root运行那么子进程修改的时候不能设置outside为1000，会提示<code>RTNETLINK answers: Operation not permitted</code>，因为这时候使用的root用户其用户组为0，关于此节内容想深入理解还可以看看这个<a href="http://www.seteuid0.com/cve-2013-1959%E5%86%85%E6%A0%B8%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86%E4%B8%8E%E6%9C%AC%E5%9C%B0%E6%8F%90%E6%9D%83%E5%88%A9%E7%94%A8%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0%E5%88%86%E6%9E%90/" target="_blank" rel="external">bug分析</a>。</p>
+
+    </div>
+
+    
+
+    
+        <div class="post-tags">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+            <a href="/tags/docker/">#docker</a> <a href="/tags/Linux/">#Linux</a>
+        </div>
+    
+
+    <!-- Comments -->
+    
+    <div class="comments">
+        
+<div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+
+
+
+    </div>
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    随便看看想想写写，有所成也好无所成也罢，一切都会随风消散。
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2017/03/15/docker-rudiments-and-practice-part1/">docker入门实战笔记</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2017/03/15/gdb-debug-learn/">GDB调试初探</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2017/03/15/hello-world-hexo3/">Hello World Hexo3</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2017/03/15/jquery-toc-bug-fix/">Jquery插件Table of Contents</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/docker/">docker</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/Linux/">Linux</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/js/">js</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/hexo/">hexo</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a href="https://github.com/suwey">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="https://plus.google.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-google-plus"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="https://500px.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="mailto:suwey_1990#126.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-envelope-o"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @suwey. All right reserved | Design & Hexo <a href="http://www.codeblocq.com/">Jonathan Klughertz</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+<script src="/js/main.js"></script>
+
+<!-- Disqus Comments -->
+
+<script type="text/javascript">
+    var disqus_shortname = 'mycurious';
+
+    (function(){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/raphael/2.2.7/raphael.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/js-sequence-diagrams/1.0.6/sequence-diagram-min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/flowchart/1.6.5/flowchart.min.js"></script>
+<!-- Chart Render -->
+<script type="text/javascript">
+    $(".sequence").sequenceDiagram({theme: 'simple'});
+    var flowCount = 0;
+    $(".flow").each(function() {
+        var el = $(this);
+        el.hide();
+        el.after('<div id="flow-' + flowCount + '"></div>');
+        var chart = flowchart.parse(el.text());
+        chart.drawSVG('flow-' + flowCount);
+        flowCount++;
+    });
+</script>
+<!-- End Chart Render -->
+
+
+
+</body>
+
+</html>

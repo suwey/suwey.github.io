@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="装完博客之后发现其他主题的文章有个新功能：可以在正文右边生成文章的目录，也就是TOC（table of contents)。 于是想把这个功能移植过来，但是不太清楚hexo生成文章的过程，也不想和其他主题一样都固定在文章右边，这样在浏览文章后面时无法方便的切换到其他段落，所以就想能否直接用js抓取正文的标题自动生成一个TOC列表，搜索后发现有个jquery的插件toc正好有这个功能，然后问题就来了。">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="suwey">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="Jquery插件Table of Contents修改"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="My Curious"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+    <meta name="twitter:card" content="summary" />
+    
+
+    <!-- Title -->
+    
+    <title>Jquery插件Table of Contents修改 - My Curious</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css" integrity="sha384-y3tfxAZXuh4HwSYylfB+J125MxIs6mR5FOHamPBG064zB+AFeWH94NdvaCBm8qnd" crossorigin="anonymous">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+
+    <!-- Google Analytics -->
+    
+
+
+</head>
+
+
+<body>
+
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+
+<!-- Menu -->
+<!--Menu Links and Overlay-->
+<div class="menu-bg">
+    <div class="menu-container">
+        <ul>
+            
+            <li class="menu-item">
+                <a href="/">
+                    Home
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/archives">
+                    Archives
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/about.html">
+                    About
+                </a>
+            </li>
+            
+            <li class="menu-item">
+                <a href="/contact.html">
+                    Contact
+                </a>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+<!--Hamburger Icon-->
+<nav>
+    <a href="#menu"></a>
+</nav>
+
+<div class="container">
+
+    <!-- Main Content -->
+    <div class="row">
+    <div class="col-sm-12">
+
+        <!--Title and Logo-->
+        <header>
+    <div class="logo">
+        <a href="/"><i class="logo-icon fa fa-leaf" aria-hidden="true"></i></a>
+        
+    </div>
+</header>
+
+        <section class="main">
+            
+<div class="post">
+
+    <div class="post-header">
+        <h1 class="title">
+            <a href="/2017/03/15/jquery-toc-bug-fix/">
+                Jquery插件Table of Contents修改
+            </a>
+        </h1>
+        <div class="post-info">
+            
+                <span class="date">2017-03-15</span>
+            
+            <a href="#disqus_thread" class="comments">Kommentare</a>
+            
+                <span class="category">
+                    <a href="/categories/js/">js</a>
+                </span>
+            
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- Gallery -->
+        
+
+        <!-- Post Content -->
+        <p>装完博客之后发现其他主题的文章有个新功能：可以在正文右边生成文章的目录，也就是TOC（table of contents)。 于是想把这个功能移植过来，但是不太清楚hexo生成文章的过程，也不想和其他主题一样都固定在文章右边，这样在浏览文章后面时无法方便的切换到其他段落，所以就想能否直接用js抓取正文的标题自动生成一个TOC列表，搜索后发现有个jquery的插件<a href="http://projects.jga.me/toc/" target="_blank" rel="external">toc</a>正好有这个功能，然后问题就来了。</p>
+<a id="more"></a>
+<h2 id="无法真正的smoothScroll"><a href="#无法真正的smoothScroll" class="headerlink" title="无法真正的smoothScroll"></a>无法真正的smoothScroll</h2><p>装上使用后发现一直不对，具体可以参考bootstrap的关于页面<a href="http://www.bootcss.com/about/" target="_blank" rel="external">bootstrap</a>。很明显点击左侧的时候无法真的顺滑滚动（可对比本页面效果），都是直接跳到标题处而且因为有个顶端的nav，标题还会被遮挡（这个不同浏览器表现还不太一样，IE有时候只会遮挡一部分）。这个问题排查了很久，一直到发现无论如何设置参数效果都是这样，遂决定看看源码。</p>
+<h2 id="排查toc-js源码"><a href="#排查toc-js源码" class="headerlink" title="排查toc.js源码"></a>排查toc.js源码</h2><p>使用的时候是安装官网demo的设置设定的，所以要排查问题，先从设置开始看看整个执行的流程。</p>
+<h3 id="排查执行流程"><a href="#排查执行流程" class="headerlink" title="排查执行流程"></a>排查执行流程</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$(<span class="string">'#toc'</span>).toc(&#123;</span><br><span class="line">    <span class="string">'selectors'</span>: <span class="string">'h1,h2,h3'</span>, <span class="comment">//elements to use as headings</span></span><br><span class="line">    <span class="string">'container'</span>: <span class="string">'body'</span>, <span class="comment">//element to find all selectors in</span></span><br><span class="line">    <span class="string">'smoothScrolling'</span>: <span class="literal">true</span>, <span class="comment">//enable or disable smooth scrolling on click</span></span><br><span class="line">    <span class="string">'prefix'</span>: <span class="string">'toc'</span>, <span class="comment">//prefix for anchor tags and class names</span></span><br><span class="line">    ...</span><br></pre></td></tr></table></figure>
+<p>设置的时候smoothScrolling的值为true,然后看初始化代码。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">$.fn.toc = <span class="function"><span class="keyword">function</span>(<span class="params">options</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> self = <span class="keyword">this</span>;</span><br><span class="line">  <span class="keyword">var</span> opts = $.extend(&#123;&#125;, jQuery.fn.toc.defaults, options);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">var</span> container = $(opts.container);</span><br><span class="line">  <span class="keyword">var</span> headings = $(opts.selectors, container);</span><br><span class="line">  <span class="keyword">var</span> headingOffsets = [];</span><br><span class="line">  <span class="keyword">var</span> activeClassName = opts.activeClass;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">var</span> scrollTo = <span class="function"><span class="keyword">function</span>(<span class="params">e, callback</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (opts.smoothScrolling &amp;&amp; <span class="keyword">typeof</span> opts.smoothScrolling === <span class="string">'function'</span>) &#123;</span><br><span class="line">      e.preventDefault();</span><br><span class="line">      <span class="keyword">var</span> elScrollTo = $(e.target).attr(<span class="string">'href'</span>);</span><br><span class="line"></span><br><span class="line">      opts.smoothScrolling(elScrollTo, opts, callback);</span><br><span class="line">    &#125;</span><br><span class="line">    $(<span class="string">'li'</span>, self).removeClass(activeClassName);</span><br><span class="line">    $(e.target).parent().addClass(activeClassName);</span><br><span class="line">  &#125;;</span><br></pre></td></tr></table></figure>
+<p>这段代码就是$().toc({})后做的事情了，可以看到初始化的设置被当作options传入，然后对toc.defaults的设置进行了覆盖作为opts变量继续传递。重点看scrollTo方法：if语句先判断opts.smoothScrolling为true然后在判断其类型是function然后才真的进行smoothScrolling，所以问题就在这了，即使在脚本语言里应该也没法让一个变量同时是boolean型又是function吧。这个bug导致scrollTo方法根本起不到预想的作用。</p>
+<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h3><p>根据上面的分析，只需要把scrollTo方法里面if语句前面的<code>opt.smoothScrolling</code>改成<code>opt.smoothScroll</code>然后在使用toc方法设置的时候把<code>&#39;smoothScrolling&#39;: true</code>改成<code>&#39;smoothScroll&#39;: true</code>就行了。</p>
+<h3 id="避免nav遮挡"><a href="#避免nav遮挡" class="headerlink" title="避免nav遮挡"></a>避免nav遮挡</h3><p>有些网站会和本站一样有个顶端固定的nav，仅仅按照上面的设置会在跳转的时候造成遮挡损失一部分标题内容，看文档应该设置一个参数<code>scrollToOffset</code>，但是这个参数应该设置为多少呢，猜想应该是nav的高度，所以很自然的设置为<code>$(&#39;nav&#39;).outerHeight()</code>。貌似问题解决了，但是既然已经分析到这了顺便看看这个参数如何起效的吧。</p>
+<h2 id="分析smoothScroll"><a href="#分析smoothScroll" class="headerlink" title="分析smoothScroll"></a>分析smoothScroll</h2><p>接着上文的scrollTo方法进入可以看到使用了opts.smoothScrolling方法，根据前面的分析opts的值来自初始化的选项覆盖默认选项后的结果，所以看看默认的方法。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">smoothScrolling: <span class="function"><span class="keyword">function</span>(<span class="params">target, options, callback</span>) </span>&#123;</span><br><span class="line">    $(target).smoothScroller(&#123;</span><br><span class="line">      <span class="attr">offset</span>: options.scrollToOffset</span><br><span class="line">    &#125;).on(<span class="string">'smoothScrollerComplete'</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">      callback();</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;,</span><br></pre></td></tr></table></figure>
+<p>其中target就是生成的toc中a标签地址href的值，options就是opts，callback的真相得看看下面这段。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">/build TOC item</span><br><span class="line">      <span class="keyword">var</span> a = $(<span class="string">'&lt;a/&gt;'</span>)</span><br><span class="line">        .text(opts.headerText(i, heading, $h))</span><br><span class="line">        .attr(<span class="string">'href'</span>, <span class="string">'#'</span> + anchorName)</span><br><span class="line">        .bind(<span class="string">'click'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">e</span>) </span>&#123;</span><br><span class="line">          $(<span class="built_in">window</span>).unbind(<span class="string">'scroll'</span>, highlightOnScroll);</span><br><span class="line">          scrollTo(e, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">            $(<span class="built_in">window</span>).bind(<span class="string">'scroll'</span>, highlightOnScroll);</span><br><span class="line">          &#125;);</span><br><span class="line">          el.trigger(<span class="string">'selected'</span>, $(<span class="keyword">this</span>).attr(<span class="string">'href'</span>));</span><br><span class="line">        &#125;);</span><br></pre></td></tr></table></figure>
+<h3 id="toc原理"><a href="#toc原理" class="headerlink" title="toc原理"></a>toc原理</h3><p>插件的原理是将container容器里面的selector选择器选中的元素（也就是标题）前面生成一个span标签，id为前缀加序号（例如toc0,toc1）。然后生成一个ul列表，列表项为href指向span标签id的地址（例如#toc0,#toc1）。这样其实如果不使用smoothScroll可以直接点击跳转了，但是对本博客这种页面顶端有nav的就会导致标题被遮挡的情况。（所以因为有上文分析的bug存在，是一直都是这样的浏览器默认行为的）</p>
+<p>根据这段代码可以得知scrollTo传给smoothScrolling的callback函数就是<code>highlightOnScroll</code>。因为scrollTo的判断bug存在，修改之前highlightOnScroll的效果在点击跳转后会失效的，因为在unbind之后没有机会再bind回来了，所以我一度直接把unbind的函数删了。</p>
+<h3 id="smoothScroller"><a href="#smoothScroller" class="headerlink" title="smoothScroller"></a>smoothScroller</h3><p>回到smoothScrolling方法可以看到：讲生成的ul列表链接的href指向元素上生成了一个smoothScroller对象，传入了一个参数就是初始化设置的<code>scrollToOffset</code>。所以看看smoothScroller的代码：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$.fn.smoothScroller = <span class="function"><span class="keyword">function</span>(<span class="params">options</span>) </span>&#123;</span><br><span class="line">    options = $.extend(&#123;&#125;, $.fn.smoothScroller.defaults, options);</span><br><span class="line">    <span class="keyword">var</span> el = $(<span class="keyword">this</span>);</span><br><span class="line"></span><br><span class="line">    $(options.scrollEl).animate(&#123;</span><br><span class="line">      <span class="attr">scrollTop</span>: el.offset().top - $(options.scrollEl).offset().top - options.offset</span><br><span class="line">    &#125;, options.speed, options.ease, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>拿到options后也是对默认值进行了一次覆盖，可以看到默认的<code>options.scrollEl</code>的值为<code>&#39;body,html&#39;</code>，现在可以清楚看到smoothScroll的执行过程了：在ul列表链接href指向的元素上向上移动一段距离，距离的大小为该元素的到top的距离减去body到top的距离再减去自定义的offset值。</p>
+<p>综上所述，smoothScroll就是把生成在选中标题前面span标签向上移动该标签到页面顶端的距离减去offset的距离，也就是初始化设置中的scrollToOffset的值。所以前面设置为nav的高度就对了。</p>
+
+    </div>
+
+    
+
+    
+        <div class="post-tags">
+            <i class="fa fa-tags" aria-hidden="true"></i>
+            <a href="/tags/toc/">#toc</a>
+        </div>
+    
+
+    <!-- Comments -->
+    
+    <div class="comments">
+        
+<div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+
+
+
+    </div>
+    
+
+</div>
+        </section>
+
+    </div>
+</div>
+
+</div>
+
+<!-- Footer -->
+<div class="push"></div>
+
+<footer class="footer-content">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 footer-about">
+                <h2>About</h2>
+                <p>
+                    随便看看想想写写，有所成也好无所成也罢，一切都会随风消散。
+                </p>
+            </div>
+            
+    <div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 recent-posts">
+        <h2>Recent Posts</h2>
+        <ul>
+            
+            <li>
+                <a class="footer-post" href="/2017/03/15/docker-rudiments-and-practice-part1/">docker入门实战笔记</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2017/03/15/gdb-debug-learn/">GDB调试初探</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2017/03/15/hello-world-hexo3/">Hello World Hexo3</a>
+            </li>
+            
+            <li>
+                <a class="footer-post" href="/2017/03/15/jquery-toc-bug-fix/">Jquery插件Table of Contents</a>
+            </li>
+            
+        </ul>
+    </div>
+
+
+
+            
+<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 footer-categories">
+    <h2>Categories</h2>
+    <ul>
+        
+        <li>
+            <a class="footer-post" href="/categories/docker/">docker</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/Linux/">Linux</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/js/">js</a>
+        </li>
+        
+        <li>
+            <a class="footer-post" href="/categories/hexo/">hexo</a>
+        </li>
+        
+    </ul>
+</div>
+
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <ul class="list-inline footer-social-icons">
+                    
+                    <li class="list-inline-item">
+                        <a href="https://github.com/suwey">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-github"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="https://twitter.com/?lang=en">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-twitter"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="https://www.facebook.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-facebook"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="https://www.instagram.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-instagram"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="https://dribbble.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-dribbble"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="https://plus.google.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-google-plus"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="https://www.behance.net/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-behance"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="https://500px.com/">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-500px"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="mailto:suwey_1990#126.com">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-envelope-o"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="list-inline-item">
+                        <a href="\#">
+                            <span class="footer-icon-container">
+                                <i class="fa fa-rss"></i>
+                            </span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                <div class="footer-copyright">
+                    @suwey. All right reserved | Design & Hexo <a href="http://www.codeblocq.com/">Jonathan Klughertz</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- After footer scripts -->
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Tween Max -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/gsap/1.18.5/TweenMax.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Custom JavaScript -->
+<script src="/js/main.js"></script>
+
+<!-- Disqus Comments -->
+
+<script type="text/javascript">
+    var disqus_shortname = 'mycurious';
+
+    (function(){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/raphael/2.2.7/raphael.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/js-sequence-diagrams/1.0.6/sequence-diagram-min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/flowchart/1.6.5/flowchart.min.js"></script>
+<!-- Chart Render -->
+<script type="text/javascript">
+    $(".sequence").sequenceDiagram({theme: 'simple'});
+    var flowCount = 0;
+    $(".flow").each(function() {
+        var el = $(this);
+        el.hide();
+        el.after('<div id="flow-' + flowCount + '"></div>');
+        var chart = flowchart.parse(el.text());
+        chart.drawSVG('flow-' + flowCount);
+        flowCount++;
+    });
+</script>
+<!-- End Chart Render -->
+
+
+
+</body>
+
+</html>
