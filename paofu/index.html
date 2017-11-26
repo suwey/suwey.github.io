@@ -1,0 +1,416 @@
+
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta itemprop="name" content="粘性小球拖拽效果"/>
+    <meta itemprop="description" name="description"  content="粘性小球拖拽效果"/>
+	<title>粘性小球拖拽效果</title>
+	<style type="text/css">
+		body{
+			margin: 0;
+			width: 100%;
+			height: 100%;
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			overflow: hidden;
+			background-color: #34495e;
+		}
+		#canvas{
+			z-index: 1;
+			position: absolute;
+		}
+		#showHelp{
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 70px;
+			height: 30px;
+			line-height: 30px;
+			text-align: center;
+			background-color: rgba(10,10,10,0.5);
+			color: #fff;
+			font-size: 12px;
+			text-decoration: none;
+			z-index: 2;
+		}
+	</style>
+</head>
+<body>
+	<canvas id="canvas"></canvas>
+	<a href="javascript:;" id="showHelp">辅助线</a>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/16.3.5/Tween.min.js"></script>
+	<script type="text/javascript">
+        // 动画函数，简单讲就是在1000/60ms的时候画画，详情可以看这里http://www.zhangxinxu.com/wordpress/2013/09/css3-animation-requestanimationframe-tween-动画算法/
+		window.requestAnimFrame = (function(){
+		  return  window.requestAnimationFrame       ||
+		          window.webkitRequestAnimationFrame ||
+		          window.mozRequestAnimationFrame    ||
+		          function( callback ){
+		            window.setTimeout(callback, 1000 / 60);
+		          };
+		})();
+		// ===配置===
+		var sw = document.documentElement.clientWidth;
+		var sh = document.documentElement.clientHeight;
+		var dpr = window.devicePixelRatio;//适配高清屏
+		var oX = sw/2;
+		var oY = sh/2;
+		var oRadius = 30;//中心圆半径
+		var oColor = '#e74c3c';//中心圆颜色
+		var base_angle = Math.PI;//基准弧度
+		var distance_angle = Math.PI / 800;//每移动1px减小的弧度
+		var distance_angle_limit = Math.PI * 3/4;//最小基准弧度，弧度不能无限减小
+		var helpColor = 'red';
+		var canvas = document.getElementById('canvas');
+		var ctx = canvas.getContext('2d');
+		var showHelp = document.getElementById('showHelp');
+		var is_showHelp = false;
+        var is_dragging = false;
+		var is_canMove = false;//是否能拖动
+		var bounce_duration_time = 600;
+		var bounce_animate_type = TWEEN.Easing.Elastic.Out;
+		var last_x,last_y,last_angle,last_distance,coords,tween;
+
+		
+		// 画圆
+		function makeCircle(x,y,r,a,c,color) {
+			ctx.beginPath();
+			ctx.fillStyle = color;
+            // 绘制以x, y为圆心，半径为r的弧线，起始弧度是a，结束弧度是c，默认顺时针
+			ctx.arc(x*dpr,y*dpr,r*dpr,a,c);
+			ctx.fill();
+			ctx.closePath();
+		};
+		// 每次重绘函数
+		function draw(){
+            // 清理整个屏幕
+			ctx.clearRect(0,0,sw*dpr,sh*dpr);
+
+			// 画圆点
+			makeCircle(oX,oY,oRadius,0,2*Math.PI,oColor);
+
+		}
+		// 辅助线
+		function drawHelpLine(a1_x,a1_y,a2_x,a2_y,b1_x,b1_y,b2_x,b2_y){
+			ctx.strokeStyle = helpColor;
+			ctx.lineWidth = 0.5;
+			ctx.beginPath();
+            // 移动到第一个球的左边切点
+			ctx.moveTo(a1_x*dpr,a1_y*dpr);
+            // 连接到第二个球的左边切点
+			ctx.lineTo(b1_x*dpr,b1_y*dpr);
+            // 移动到第一个球的右边切点
+			ctx.moveTo(a2_x*dpr,a2_y*dpr);
+            // 连接到第二个球的右边切点
+			ctx.lineTo(b2_x*dpr,b2_y*dpr);
+			ctx.stroke();
+			ctx.closePath();
+		}
+		// 画贝塞尔曲线
+		function drawBezier(x1,y1,x2,y2,x3,y3,x4,y4,x5,y5,x6,y6){
+			ctx.beginPath();
+			ctx.fillStyle = oColor;
+			ctx.moveTo(x1*dpr,y1*dpr);
+            // 二次贝赛尔曲线，x3, y3为控制点
+            // 这里有介绍此曲线的动图，https://www.w3ctrain.com/2016/07/22/canvas-spring-ball/
+			ctx.quadraticCurveTo(x3*dpr,y3*dpr,x2*dpr,y2*dpr);
+			ctx.lineTo(x5*dpr,y5*dpr);
+            // x4, y4为结束点
+			ctx.quadraticCurveTo(x6*dpr,y6*dpr,x4*dpr,y4*dpr);
+			ctx.lineTo(x1*dpr,y1*dpr);
+			ctx.fill(); 
+			ctx.closePath();
+		}
+		// 放手回弹圆形，在拖动结束时调用
+		function bounceCircle(){
+			var toX = oX, toY = oY;
+            // last_x, last_y 是上一次移动到的位置
+			coords = { x: last_x, y: last_y };
+            // 从之前移动到的位置弹回中心
+			tween = new TWEEN.Tween(coords) // 在移动到的点开始
+			    .to({ x: toX, y: toY }, bounce_duration_time) // 在bounce_duration_time时间内移动到中心
+			    .easing(bounce_animate_type) // 使用bounce_animate_type动画
+			    .onUpdate(bounceUpdate) // 动画时调用bounceUpdate
+                .onComplete(function() {
+                    dragEnd = true;
+                    cancelAnimationFrame(bounceAnimate);
+                })
+			    .start();
+
+		    bounceAnimate();
+		}
+		function bounceAnimate(time) {
+            // 使动画更流畅
+            requestAnimationFrame(bounceAnimate);
+			TWEEN.update(time);
+		}
+        // 回弹的时候执行
+		function bounceUpdate(){
+			x = coords.x;
+			y = coords.y;
+
+			var toX=oX,toY=oY;
+            // 计算移动到的点和中心位置距离
+			var distance = Math.sqrt(Math.pow(x-toX,2)+Math.pow(y-toY,2));
+            // 计算这个距离应该使用的弧度，弧度从pi逐步减小的
+			var Bangle = base_angle - distance*distance_angle;
+            // 限制弧度不能小于最小弧度，这里是3/4 pi
+			if(Bangle < distance_angle_limit){Bangle = distance_angle_limit;}
+
+			// 这里是上次拖拽时计算好的夹角
+			var angle = last_angle;
+            // 偏移值计算
+			var	dis_x1 = Math.cos(Math.abs(Bangle/2-angle))*oRadius;
+			var	dis_y1 = Math.sin(Bangle/2-angle)*oRadius;
+			var	dis_x2 = Math.cos(Math.abs(Math.PI-Bangle/2-angle))*oRadius;
+			var	dis_y2 = Math.sin(Math.PI-Bangle/2-angle)*oRadius;
+
+			// 求四个交点
+			var a1_x,a1_y,a2_x,a2_y,b1_x,b1_y,b2_x,b2_y,c1_x,c1_y,c2_x,c2_y;
+			// 第三象限
+			if(x>toX&&y<toY){
+				// 圆A的两个点
+				a1_x = toX-dis_x2;
+				a1_y = toY-dis_y2;
+				a2_x = toX+dis_x1;
+				a2_y = toY+dis_y1;
+
+				// 圆B的两个点
+				b1_x = x-dis_x1;
+				b1_y = y-dis_y1;
+				b2_x = x+dis_x2;
+				b2_y = y+dis_y2;
+			}
+			// 第三象限
+			else if(x<toX&&y<toY){
+				// 圆A的两个点
+				a1_x = toX-dis_x1;
+				a1_y = toY+dis_y1;
+				a2_x = toX+dis_x2;
+				a2_y = toY-dis_y2;
+
+				// 圆B的两个点
+				b1_x = x-dis_x2;
+				b1_y = y+dis_y2;
+				b2_x = x+dis_x1;
+				b2_y = y-dis_y1;
+			}
+			// 第二象限
+			else if(x<toX&&y>toY){
+				// 圆A的两个点
+				a1_x = toX+dis_x2;
+				a1_y = toY+dis_y2;
+				a2_x = toX-dis_x1;
+				a2_y = toY-dis_y1;
+
+				// 圆B的两个点
+				b1_x = x+dis_x1;
+				b1_y = y+dis_y1;
+				b2_x = x-dis_x2;
+				b2_y = y-dis_y2;
+			}
+			// 第一象限
+			else if(x>toX&&y>toY){
+				// 圆A的两个点
+				a1_x = toX+dis_x1;
+				a1_y = toY-dis_y1;
+				a2_x = toX-dis_x2;
+				a2_y = toY+dis_y2;
+
+				// 圆B的两个点
+				b1_x = x+dis_x2;
+				b1_y = y-dis_y2;
+				b2_x = x-dis_x1;
+				b2_y = y+dis_y1;
+			}
+			
+			// 贝塞尔曲线控制点
+			c1_x = (b2_x+a1_x)/2;
+			c1_y = (b2_y+a1_y)/2;
+			c2_x = (b1_x+a2_x)/2;
+			c2_y = (b1_y+a2_y)/2;
+			
+			// 贝塞尔曲线控制点
+			c1_x = (b2_x+a1_x)/2;
+			c1_y = (b2_y+a1_y)/2;
+			c2_x = (b1_x+a2_x)/2;
+			c2_y = (b1_y+a2_y)/2;
+
+			draw();
+			makeCircle(x,y,oRadius,0,2*Math.PI,oColor);
+			drawBezier(a1_x,a1_y,b1_x,b1_y,c1_x,c1_y,a2_x,a2_y,b2_x,b2_y,c2_x,c2_y);
+		}
+
+		// ===绑定===
+		// 绑定拖拽
+		showHelp.addEventListener('click',function(e){
+			e.preventDefault();
+			if(is_showHelp){
+				is_showHelp = false;
+			}
+			else{
+				is_showHelp = true;
+			}
+		});
+
+        function touchstart(e) {
+            e.preventDefault();
+			var x = event.pageX || e.touches[0].clientX;
+			var y = event.pageY || e.touches[0].clientY;
+
+			// 计算是否在圆内
+			var distance = Math.sqrt(Math.pow(x-oX,2)+Math.pow(y-oY,2));
+
+            if(distance-oRadius > 0) {
+                // 圆外无法拖动
+			    is_canMove = false;
+            } else {
+                is_canMove = true;
+                is_dragging = true;
+            }
+        }
+
+        function touchmove(e) {
+            e.preventDefault();
+			if(!is_canMove){
+				return;
+			}
+            if(!is_dragging) {
+                return;
+            }
+			var x = event.pageX || e.touches[0].clientX;
+			var y = event.pageY || e.touches[0].clientY;
+			var toX=oX,toY=oY;
+
+			// 计算两点间距离
+			var distance = Math.sqrt(Math.pow(x-toX,2)+Math.pow(y-toY,2));
+			var Bangle = base_angle - distance*distance_angle;
+			if(Bangle < distance_angle_limit){Bangle = distance_angle_limit;}
+
+			// 计算拖拽水平夹角，这个角是以中心为原点画坐标，y轴和拖动到的圆心连线的夹角
+			var angle = Math.atan(Math.abs(y - toY)/Math.abs(x - toX));
+            // 下面是拖动距离越大拖拽夹角越小的时候切点需要的偏移值的计算
+            // Bangle代表拖动夹角指的是优化成不是精确切线的切点，一个圆的两个切点连线不一定经过圆心
+			var	dis_x1 = Math.cos(Math.abs(Bangle/2-angle))*oRadius;
+			var	dis_y1 = Math.sin(Bangle/2-angle)*oRadius;
+			var	dis_x2 = Math.cos(Math.abs(Math.PI-Bangle/2-angle))*oRadius;
+			var	dis_y2 = Math.sin(Math.PI-Bangle/2-angle)*oRadius;
+
+			// 记录最新点
+			last_x = x;
+			last_y = y;
+			last_angle = angle;
+			last_distance = distance;
+
+			// 求四个交点
+			var a1_x,a1_y,a2_x,a2_y,b1_x,b1_y,b2_x,b2_y,c1_x,c1_y,c2_x,c2_y;
+			// 第一象限
+			if(x>toX&&y<toY){
+				// 圆A的两个点
+				a1_x = toX-dis_x2;
+				a1_y = toY-dis_y2;
+				a2_x = toX+dis_x1;
+				a2_y = toY+dis_y1;
+
+				// 圆B的两个点
+				b1_x = x-dis_x1;
+				b1_y = y-dis_y1;
+				b2_x = x+dis_x2;
+				b2_y = y+dis_y2;
+			}
+			// 第二象限
+			else if(x<toX&&y<toY){
+				// 圆A的两个点
+				a1_x = toX-dis_x1;
+				a1_y = toY+dis_y1;
+				a2_x = toX+dis_x2;
+				a2_y = toY-dis_y2;
+
+				// 圆B的两个点
+				b1_x = x-dis_x2;
+				b1_y = y+dis_y2;
+				b2_x = x+dis_x1;
+				b2_y = y-dis_y1;
+			}
+			// 第三象限
+			else if(x<toX&&y>toY){
+				// 圆A的两个点
+				a1_x = toX+dis_x2;
+				a1_y = toY+dis_y2;
+				a2_x = toX-dis_x1;
+				a2_y = toY-dis_y1;
+
+				// 圆B的两个点
+				b1_x = x+dis_x1;
+				b1_y = y+dis_y1;
+				b2_x = x-dis_x2;
+				b2_y = y-dis_y2;
+			}
+			// 第四象限
+			else if(x>toX&&y>toY){
+				// 圆A的两个点
+				a1_x = toX+dis_x1;
+				a1_y = toY-dis_y1;
+				a2_x = toX-dis_x2;
+				a2_y = toY+dis_y2;
+
+				// 圆B的两个点
+				b1_x = x+dis_x2;
+				b1_y = y-dis_y2;
+				b2_x = x-dis_x1;
+				b2_y = y+dis_y1;
+			}
+			
+			// 贝塞尔曲线控制点，就是和另一切线点连线中点
+			c1_x = (b2_x+a1_x)/2;
+			c1_y = (b2_y+a1_y)/2;
+			c2_x = (b1_x+a2_x)/2;
+			c2_y = (b1_y+a2_y)/2;
+
+			// console.log('两点间距离:'+distance);
+			// console.log('与x轴夹角：'+angle*180/Math.PI);
+			// console.log('圆A点p1：('+a1_x+','+a1_y+')');
+			// console.log('圆A点p2：('+a2_x+','+a2_y+')');
+			// console.log('圆B点p1：('+b1_x+','+b1_y+')');
+			// console.log('圆B点p2：('+b2_x+','+b2_y+')');
+			
+			draw();
+			makeCircle(x,y,oRadius,0,2*Math.PI,oColor);
+			drawBezier(a1_x,a1_y,b1_x,b1_y,c1_x,c1_y,a2_x,a2_y,b2_x,b2_y,c2_x,c2_y);
+			if(is_showHelp){
+				drawHelpLine(a1_x,a1_y,a2_x,a2_y,b1_x,b1_y,b2_x,b2_y);
+			}
+        }
+
+        function touchend(e) {
+			e.preventDefault();
+			if(!is_canMove){
+				return;
+			}
+            is_dragging = false;
+			bounce_distance = last_distance;
+			bounceCircle();
+        }
+
+        canvas.addEventListener('mousedown', touchstart);
+        canvas.addEventListener('mousemove', touchmove);
+        canvas.addEventListener('mouseup', touchend);
+
+        canvas.addEventListener('touchstart', touchstart);
+        canvas.addEventListener('touchmove', touchmove);
+        canvas.addEventListener('touchend', touchend);
+
+		// ===调用===
+		// 基本画圆
+		canvas.setAttribute('style', ';height:' + sh + 'px;width:' + sw + 'px;');
+		ctx.canvas.width = sw*dpr;
+		ctx.canvas.height = sh*dpr;
+
+		draw();
+	</script>
+</body>
+</html>
